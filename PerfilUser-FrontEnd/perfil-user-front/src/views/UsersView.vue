@@ -86,7 +86,7 @@
               <td>{{ user.age }}</td>
               <td>{{ user.role }}</td>
               <td class="actions-cell">
-                <button @click="openEditModal(user)" class="action-btn action-complete" title="Alterar">
+                <button @click="openEditModal(user)" class="action-btn action-complete bg-yellow-400 hover:bg-yellow-500 text-black" title="Alterar">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="22" height="22"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487a2.1 2.1 0 1 1 2.97 2.97L7.5 19.79l-4 1 1-4 14.362-14.303z" /></svg>
                 </button>
                 <button @click="removeUser(user.id)" class="action-btn action-remove" title="Remover">
@@ -248,10 +248,16 @@ export default {
           role: userData.role
         };
         if (userData.password) payload.password = userData.password;
-        await UserService.updateUser(userData.id, payload);
+        const updatedUser = await UserService.updateUser(userData.id, payload);
+
+        // Atualize a lista local de usuários reativamente
+        const idx = users.value.findIndex(u => u.id === userData.id);
+        if (idx !== -1) {
+          users.value.splice(idx, 1, updatedUser.data.user || { ...userData, ...payload });
+        }
+
         editModalOpen.value = false;
-        await fetchUsers();
-        window.location.reload();
+        // Não precisa de await fetchUsers() se atualizar localmente
       } catch (e) {
         editError.value = e.response?.data?.message || 'Erro ao atualizar usuário';
       }
@@ -325,36 +331,7 @@ export default {
         currentPage.value--;
       }
     }
-    onMounted(async () => {
-      await fetchUsers();
-      if (localStorage.getItem('userUpdateSuccess')) {
-        showSuccessToast('Usuário atualizado com sucesso!');
-        localStorage.removeItem('userUpdateSuccess');
-      }
-    });
-    function showSuccessToast(message) {
-      const toast = document.createElement('div');
-      toast.textContent = message;
-      toast.style.position = 'fixed';
-      toast.style.top = '32px';
-      toast.style.right = '32px';
-      toast.style.background = '#22c55e';
-      toast.style.color = '#fff';
-      toast.style.padding = '1rem 2rem';
-      toast.style.borderRadius = '8px';
-      toast.style.fontWeight = 'bold';
-      toast.style.fontSize = '1.1rem';
-      toast.style.boxShadow = '0 2px 12px rgba(0,0,0,0.12)';
-      toast.style.zIndex = '9999';
-      toast.style.opacity = '0';
-      toast.style.transition = 'opacity 0.3s';
-      document.body.appendChild(toast);
-      setTimeout(() => { toast.style.opacity = '1'; }, 50);
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => { document.body.removeChild(toast); }, 400);
-      }, 1100);
-    }
+    onMounted(fetchUsers);
     return { users, paginatedUsers, currentPage, totalPages, nextPage, prevPage, removeUser, editUser, showError, goDashboard, logout, searchTerm, showModal, foundUsers, selectedUser, searchUsers, showUserDetails, closeModal, editModalOpen, editUserData, editError, openEditModal, closeEditModal, handleEditUserSubmit, openCreateUserModal, isCreatingUser, showUserFormModal, closeUserFormModal, handleUserFormSubmit, userFormError, userFormLoading };
   }
 };
