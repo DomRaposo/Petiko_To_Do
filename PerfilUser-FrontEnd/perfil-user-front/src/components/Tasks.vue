@@ -29,7 +29,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="task in tasks" :key="task.id" class="task-row">
+          <tr v-for="task in paginatedTasks" :key="task.id" class="task-row">
             <td :data-label="'Usuário'">{{ task.user?.fullName || 'Desconhecido' }}</td>
             <td :data-label="'Título'">{{ task.title }}</td>
             <td :data-label="'Descrição'">{{ task.description }}</td>
@@ -51,6 +51,11 @@
           </tr>
         </tbody>
       </table>
+    </div>
+    <div class="pagination" v-if="totalPages > 1">
+      <button class="tasks-header-btn" @click="prevPage" :disabled="currentPage === 1" :style="{ marginRight: '0.7rem', opacity: currentPage === 1 ? 0.6 : 1 }">Anterior</button>
+      <span style="font-weight: 600; color: #6366f1; margin: 0 0.7rem;">Página {{ currentPage }} de {{ totalPages }}</span>
+      <button class="tasks-header-btn" @click="nextPage" :disabled="currentPage === totalPages" :style="{ marginLeft: '0.7rem', opacity: currentPage === totalPages ? 0.6 : 1 }">Próxima</button>
     </div>
     <div v-if="tasks.length === 0" class="empty-state">
       <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
@@ -138,8 +143,20 @@ export default {
         description: '',
         dueDate: '',
         status: 'pending'
-      }
+      },
+      currentPage: 1,
+      itemsPerPage: 5
     };
+  },
+  computed: {
+    paginatedTasks() {
+      const start = (this.currentPage - 1) * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.tasks.slice(start, end);
+    },
+    totalPages() {
+      return Math.ceil(this.tasks.length / this.itemsPerPage) || 1;
+    }
   },
   methods: {
     handleAddTask() {
@@ -184,6 +201,16 @@ export default {
       const month = String(d.getMonth() + 1).padStart(2, '0');
       const year = d.getFullYear();
       return `${day}/${month}/${year}`;
+    },
+    nextPage() {
+      if (this.currentPage < this.totalPages) {
+        this.currentPage++;
+      }
+    },
+    prevPage() {
+      if (this.currentPage > 1) {
+        this.currentPage--;
+      }
     }
   }
 };

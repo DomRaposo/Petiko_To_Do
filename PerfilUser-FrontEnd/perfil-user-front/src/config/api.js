@@ -15,8 +15,8 @@ const currentEnv = process.env.NODE_ENV || ENV.DEVELOPMENT;
 // Configurações por ambiente
 const environmentConfig = {
   [ENV.DEVELOPMENT]: {
-    baseURL: 'http://localhost:3000/api',
-    apiURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:8000/api',
+    apiURL: 'http://localhost:8000',
     timeout: 10000,
     retryAttempts: 3,
     retryDelay: 1000,
