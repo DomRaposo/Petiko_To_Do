@@ -1,7 +1,12 @@
+# Sistema
 .DS_Store
-node_modules
-/dist
 
+# Dependências
+node_modules
+
+# Build e cache
+/dist
+/.cache
 
 # local env files
 .env.local
@@ -12,6 +17,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+*.log
 
 # Editor directories and files
 .idea
@@ -21,3 +27,11 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+# Test coverage
+coverage/
+
+# Pacotes e backups
+*.tgz
+*.bak
+*.tmp
