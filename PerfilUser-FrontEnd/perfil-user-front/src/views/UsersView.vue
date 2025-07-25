@@ -248,16 +248,10 @@ export default {
           role: userData.role
         };
         if (userData.password) payload.password = userData.password;
-        const updatedUser = await UserService.updateUser(userData.id, payload);
-
-        // Atualize a lista local de usuários reativamente
-        const idx = users.value.findIndex(u => u.id === userData.id);
-        if (idx !== -1) {
-          users.value.splice(idx, 1, updatedUser.data.user || { ...userData, ...payload });
-        }
-
+        await UserService.updateUser(userData.id, payload);
         editModalOpen.value = false;
-        // Não precisa de await fetchUsers() se atualizar localmente
+        await fetchUsers();
+        window.location.reload();
       } catch (e) {
         editError.value = e.response?.data?.message || 'Erro ao atualizar usuário';
       }
@@ -331,7 +325,36 @@ export default {
         currentPage.value--;
       }
     }
-    onMounted(fetchUsers);
+    onMounted(async () => {
+      await fetchUsers();
+      if (localStorage.getItem('userUpdateSuccess')) {
+        showSuccessToast('Usuário atualizado com sucesso!');
+        localStorage.removeItem('userUpdateSuccess');
+      }
+    });
+    function showSuccessToast(message) {
+      const toast = document.createElement('div');
+      toast.textContent = message;
+      toast.style.position = 'fixed';
+      toast.style.top = '32px';
+      toast.style.right = '32px';
+      toast.style.background = '#22c55e';
+      toast.style.color = '#fff';
+      toast.style.padding = '1rem 2rem';
+      toast.style.borderRadius = '8px';
+      toast.style.fontWeight = 'bold';
+      toast.style.fontSize = '1.1rem';
+      toast.style.boxShadow = '0 2px 12px rgba(0,0,0,0.12)';
+      toast.style.zIndex = '9999';
+      toast.style.opacity = '0';
+      toast.style.transition = 'opacity 0.3s';
+      document.body.appendChild(toast);
+      setTimeout(() => { toast.style.opacity = '1'; }, 50);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => { document.body.removeChild(toast); }, 400);
+      }, 1100);
+    }
     return { users, paginatedUsers, currentPage, totalPages, nextPage, prevPage, removeUser, editUser, showError, goDashboard, logout, searchTerm, showModal, foundUsers, selectedUser, searchUsers, showUserDetails, closeModal, editModalOpen, editUserData, editError, openEditModal, closeEditModal, handleEditUserSubmit, openCreateUserModal, isCreatingUser, showUserFormModal, closeUserFormModal, handleUserFormSubmit, userFormError, userFormLoading };
   }
 };
