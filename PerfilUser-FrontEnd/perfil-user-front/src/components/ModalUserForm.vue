@@ -132,7 +132,8 @@ export default {
             profile_image: newUser.profile_image || '',
             email: newUser.email || '',
             password: '',
-            role: newUser.role || 'user'
+            role: newUser.role || 'user',
+            confirmPassword: ''
           }
         } else {
           this.resetForm()
@@ -169,6 +170,10 @@ export default {
         delete userData.password
       }
       delete userData.confirmPassword;
+      // Adiciona o id ao editar
+      if (this.isEdit && this.user && this.user.id) {
+        userData.id = this.user.id;
+      }
       this.$emit('submit', userData)
     }
   }

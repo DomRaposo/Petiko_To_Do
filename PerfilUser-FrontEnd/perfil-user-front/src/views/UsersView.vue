@@ -112,6 +112,7 @@
       </div>
     </div>
     <ModalUserForm v-if="showUserFormModal" :isEdit="false" @close="closeUserFormModal" @submit="handleUserFormSubmit" />
+    <ModalUserForm v-if="editModalOpen" :isEdit="true" :user="editUserData" @close="closeEditModal" @submit="handleEditUserSubmit" />
   </div>
 </template>
 
@@ -198,21 +199,68 @@ export default {
       selectedUser.value = null;
     }
     const editModalOpen = ref(false);
-    const editUserData = ref({ id: null, fullName: '', email: '', age: '', role: '' });
+    const editUserData = ref({ id: null, fullName: '', email: '', age: '', profile_image: '', role: '', password: '', confirmPassword: '' });
     const editError = ref('');
     const isCreatingUser = ref(false);
     function openEditModal(user) {
-      // Corrige o valor do campo role para 'admin' ou 'user'
+      // Corrige o valor do campo role para 'isAdmin' ou 'user'
       let roleValue = user.role;
       if (roleValue === 'isAdmin' || roleValue === 'admin') {
-        roleValue = 'admin';
+        roleValue = 'isAdmin';
       } else {
         roleValue = 'user';
       }
-      editUserData.value = { ...user, role: roleValue };
+      editUserData.value = { ...user, role: roleValue, password: '', confirmPassword: '' };
       editModalOpen.value = true;
       editError.value = '';
       isCreatingUser.value = false;
+    }
+    function closeEditModal() {
+      editModalOpen.value = false;
+      editError.value = '';
+    }
+    async function handleEditUserSubmit(userData) {
+      try {
+        // Checagem extra para evitar campos obrigatórios vazios ou nulos
+        if (
+          !userData.fullName ||
+          String(userData.fullName).trim() === '' ||
+          !userData.age ||
+          String(userData.age).trim() === '' ||
+          !userData.email ||
+          String(userData.email).trim() === '' ||
+          !userData.role ||
+          String(userData.role).trim() === ''
+        ) {
+          editError.value = 'Preencha todos os campos obrigatórios!';
+          return;
+        }
+        // Se senha for informada, confirmar
+        if (userData.password && userData.password !== userData.confirmPassword) {
+          editError.value = 'As senhas não coincidem.';
+          return;
+        }
+        const payload = {
+          fullName: userData.fullName,
+          age: userData.age,
+          profile_image: userData.profile_image,
+          email: userData.email,
+          role: userData.role
+        };
+        if (userData.password) payload.password = userData.password;
+        const updatedUser = await UserService.updateUser(userData.id, payload);
+
+        // Atualize a lista local de usuários reativamente
+        const idx = users.value.findIndex(u => u.id === userData.id);
+        if (idx !== -1) {
+          users.value.splice(idx, 1, updatedUser.data.user || { ...userData, ...payload });
+        }
+
+        editModalOpen.value = false;
+        // Não precisa de await fetchUsers() se atualizar localmente
+      } catch (e) {
+        editError.value = e.response?.data?.message || 'Erro ao atualizar usuário';
+      }
     }
     const showUserFormModal = ref(false);
     const userFormError = ref('');
@@ -284,7 +332,7 @@ export default {
       }
     }
     onMounted(fetchUsers);
-    return { users, paginatedUsers, currentPage, totalPages, nextPage, prevPage, removeUser, editUser, showError, goDashboard, logout, searchTerm, showModal, foundUsers, selectedUser, searchUsers, showUserDetails, closeModal, editModalOpen, editUserData, editError, openEditModal, openCreateUserModal, isCreatingUser, showUserFormModal, closeUserFormModal, handleUserFormSubmit, userFormError, userFormLoading };
+    return { users, paginatedUsers, currentPage, totalPages, nextPage, prevPage, removeUser, editUser, showError, goDashboard, logout, searchTerm, showModal, foundUsers, selectedUser, searchUsers, showUserDetails, closeModal, editModalOpen, editUserData, editError, openEditModal, closeEditModal, handleEditUserSubmit, openCreateUserModal, isCreatingUser, showUserFormModal, closeUserFormModal, handleUserFormSubmit, userFormError, userFormLoading };
   }
 };
 </script> 
