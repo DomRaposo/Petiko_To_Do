@@ -30,7 +30,9 @@
         </thead>
         <tbody>
           <tr v-for="task in paginatedTasks" :key="task.id" class="task-row">
-            <td :data-label="'Usuário'">{{ task.user?.fullName || 'Desconhecido' }}</td>
+            <td :data-label="'Usuário'">
+              {{ task.user?.fullName || task.user?.name || task.user?.email || task.user?.id || 'Desconhecido' }}
+            </td>
             <td :data-label="'Título'">{{ task.title }}</td>
             <td :data-label="'Descrição'">{{ task.description }}</td>
             <td :data-label="'Data de Vencimento'">{{ formatDate(task.due_date) }}</td>
