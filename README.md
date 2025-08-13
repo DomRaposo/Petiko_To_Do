@@ -150,9 +150,3 @@ Petiko_To_Do/
 ├── PerfilUser-FrontEnd/perfil-user-front/Dockerfile.frontend
 └── ...
 ```
-
----
-
-## Licença
-
-Este projeto é open-source e está sob a licença MIT.
